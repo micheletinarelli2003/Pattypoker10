@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="it" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PATTY POKER - Texas Hold'em Tracker & Realtime League</title>
+  
+  <!-- PWA & Meta Tags -->
+  <meta name="theme-color" content="#0b0f19" />
+  <meta name="description" content="Texas Hold'em Home League Tracker, Stats, ROI & Realtime Sync" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Tailwind CSS, Lucide Icons, Chart.js & Supabase Client -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            poker: {
+              bg: '#0b0f19',
+              card: '#151c2e',
+              border: '#2a364f',
+              accent: '#3b82f6',
+              gold: '#f59e0b',
+              red: '#ef4444',
+              green: '#10b981',
+              felt: '#064e3b'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2a364f;
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="bg-poker-bg text-slate-100 min-h-screen flex flex-col pb-20 md:pb-0 custom-scrollbar">
+
+  <!-- HEADER BAR -->
+  <header class="bg-poker-card/90 backdrop-blur-md border-b border-poker-border sticky top-0 z-40 px-4 py-3 shadow-lg">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-2">
+      
+      <!-- Brand Logo & Title -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
+        <div class="w-10 h-10 rounded-xl overflow-hidden shadow-md border border-poker-border bg-slate-900 flex items-center justify-center p-0.5 shrink-0">
+          <svg viewBox="0 0 512 512" class="w-full h-full rounded-lg">
+            <rect width="512" height="512" rx="100" fill="#1d3557"/>
+            <circle cx="256" cy="256" r="230" stroke="rgba(255,255,255,0.15)" stroke-width="6" fill="none"/>
+            <circle cx="90" cy="110" r="32" fill="#e63946"/>
+            <circle cx="420" cy="120" r="30" fill="#1d3557" stroke="#ffffff" stroke-width="4"/>
+            <circle cx="80" cy="390" r="34" fill="#f1faee"/>
+            <circle cx="430" cy="380" r="36" fill="#f59e0b"/>
+            <circle cx="256" cy="440" r="28" fill="#10b981"/>
+            <g transform="translate(305,210) rotate(22)">
+              <rect x="-55" y="-80" width="110" height="160" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+              <text x="-35" y="-50" font-family="sans-serif" font-weight="bold" font-size="22" fill="#000">K</text>
+              <text x="0" y="15" font-family="sans-serif" font-size="42" text-anchor="middle" fill="#000">♠</text>
+            </g>
+            <g transform="translate(207,210) rotate(-22)">
+              <rect x="-55" y="-80" width="110" height="160" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+              <text x="-35" y="-50" font-family="sans-serif" font-weight="bold" font-size="22" fill="#e63946">A</text>
+              <text x="0" y="15" font-family="sans-serif" font-size="42" text-anchor="middle" fill="#e63946">♥</text>
+            </g>
+            <g transform="translate(256,260)">
+              <path d="M-20,85 Q0,155 20,85 Q0,105 -20,85" fill="#f97316"/>
+              <path d="M-12,85 Q0,138 12,85" fill="#facc15"/>
+              <path d="M-26,35 L-68,80 L-26,75 Z" fill="#e63946"/>
+              <path d="M26,35 L68,80 L26,75 Z" fill="#e63946"/>
+              <path d="M0,-115 C45,-45 40,45 28,80 L-28,80 C-40,45 -45,-45 0,-115 Z" fill="#ffffff"/>
+              <path d="M0,-115 C25,-75 20,-55 22,-50 L-22,-50 C-20,-55 -25,-75 0,-115 Z" fill="#f59e0b"/>
+              <circle cx="0" cy="-5" r="22" fill="#d97706"/>
+              <circle cx="0" cy="-5" r="17" fill="#0284c7"/>
+              <rect x="-26" y="42" width="52" height="10" fill="#e63946"/>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-black text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-300 to-amber-400">
+            PATTY POKER
+          </h1>
+          <p class="text-[10px] text-slate-400 font-medium tracking-tight">REALTIME LEAGUE & STATS</p>
+        </div>
+      </div>
+
+      <!-- Desktop Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-2 bg-slate-900/80 p-1 rounded-xl border border-poker-border text-sm font-medium">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="tab-btn px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 bg-poker-accent text-white">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+        </button>
+        <button onclick="switchTab('games')" id="nav-games" class="tab-btn px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="spade" class="w-4 h-4"></i> Partite
+        </button>
+        <button onclick="switchTab('players')" id="nav-players" class="tab-btn px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="users" class="w-4 h-4"></i> Giocatori
+        </button>
+        <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="tab-btn px-3.5 py-1.5 rounded-lg transition-all flex items-center gap-2 text-slate-400 hover:text-slate-200">
+          <i data-lucide="trophy" class="w-4 h-4"></i> Classifica & ROI
+        </button>
+      </nav>
+
+      <!-- Stanza & Account Controls -->
+      <div class="flex items-center gap-2">
+        <!-- Room Selector Button -->
+        <button onclick="openModal('modal-room')" class="bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-poker-border font-semibold text-xs px-2.5 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="current-room-label" class="max-w-[80px] sm:max-w-none truncate">Stanza: DEFAULT</span>
+          <i data-lucide="settings" class="w-3.5 h-3.5 text-slate-400"></i>
+        </button>
+
+        <!-- User Auth Button -->
+        <button id="btn-auth-user" onclick="openModal('modal-auth')" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 border border-blue-500/30 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          <span id="user-display-name" class="hidden sm:inline">Accedi</span>
+        </button>
+
+        <!-- New Game Quick Action -->
+        <button onclick="openNewGameModal()" class="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-slate-950 font-bold text-xs md:text-sm px-3 md:px-4 py-2 rounded-xl shadow-lg shadow-amber-500/10 flex items-center gap-1.5 transition-all transform active:scale-95">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Nuova Partita</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto w-full p-4 flex-1 space-y-6">
+
+    <!-- VIEW 1: DASHBOARD -->
+    <section id="view-dashboard" class="space-y-6">
+      
+      <!-- Quick Metric Overview Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div class="bg-poker-card border border-poker-border p-4 rounded-2xl shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold uppercase">Partite Totali</span>
+            <i data-lucide="dices" class="w-5 h-5 text-blue-400"></i>
+          </div>
+          <p id="stat-total-games" class="text-2xl font-extrabold text-white">0</p>
+          <span class="text-[10px] text-slate-400">Sessioni registrate</span>
+        </div>
+
+        <div class="bg-poker-card border border-poker-border p-4 rounded-2xl shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold uppercase">Montepremi Tot.</span>
+            <i data-lucide="coins" class="w-5 h-5 text-amber-400"></i>
+          </div>
+          <p id="stat-total-pot" class="text-2xl font-extrabold text-amber-400">€ 0</p>
+          <span class="text-[10px] text-slate-400">Movimento buy-in</span>
+        </div>
+
+        <div class="bg-poker-card border border-poker-border p-4 rounded-2xl shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold uppercase">Top ROI Lega</span>
+            <i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i>
+          </div>
+          <p id="stat-top-roi" class="text-2xl font-extrabold text-emerald-400">0%</p>
+          <span id="stat-top-roi-player" class="text-[10px] text-slate-400 truncate block">-</span>
+        </div>
+
+        <div class="bg-poker-card border border-poker-border p-4 rounded-2xl shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-1">
+            <span class="text-xs font-semibold uppercase">Leader Corrente</span>
+            <i data-lucide="crown" class="w-5 h-5 text-amber-400"></i>
+          </div>
+          <p id="stat-top-player" class="text-xl font-bold text-slate-200 truncate">-</p>
+          <span id="stat-top-player-net" class="text-[10px] text-emerald-400 font-semibold">+€ 0.00</span>
+        </div>
+      </div>
+
+      <!-- Active Game Banner -->
+      <div id="active-game-banner" class="hidden bg-gradient-to-r from-emerald-900/40 to-poker-card border-2 border-emerald-500/50 p-5 rounded-2xl shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> PARTITA IN CORSO (LIVE)
+          </span>
+          <h2 id="active-game-title" class="text-xl font-bold text-white">Tavolo Principale</h2>
+          <p id="active-game-info" class="text-xs text-slate-300 mt-1">Buy-in: €10 • 6 Giocatori al tavolo</p>
+        </div>
+        <button onclick="switchTab('games')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2">
+          <i data-lucide="play" class="w-4 h-4 fill-current"></i> Gestisci Partita Live
+        </button>
+      </div>
+
+      <!-- Charts Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-poker-card border border-poker-border p-5 rounded-2xl shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-poker-border/60 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="line-chart" class="w-5 h-5 text-blue-400"></i>
+              <h3 class="font-bold text-slate-200">Andamento Profitto nel Tempo (€)</h3>
+            </div>
+            <span class="text-xs text-slate-400">Storico per sessione</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chart-profit-history"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-poker-card border border-poker-border p-5 rounded-2xl shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-poker-border/60 pb-3">
+            <div class="flex items-center gap-2">
+              <i data-lucide="bar-chart-3" class="w-5 h-5 text-amber-400"></i>
+              <h3 class="font-bold text-slate-200">Confronto ROI (%)</h3>
+            </div>
+            <span class="text-xs text-slate-400">Rendimento %</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chart-roi-comparison"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Podium Section -->
+      <div class="bg-poker-card border border-poker-border p-5 rounded-2xl shadow-sm">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="font-bold text-slate-200 flex items-center gap-2">
+            <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i> Podio della Lega
+          </h3>
+          <button onclick="switchTab('leaderboard')" class="text-xs text-blue-400 hover:underline flex items-center gap-1">
+            Classifica Dettagliata <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+        <div id="dashboard-top-players" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- Dynamic Podium Content -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- VIEW 2: GAMES -->
+    <section id="view-games" class="hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-extrabold text-white">Registro Partite & Tavoli Live</h2>
+          <p class="text-xs text-slate-400">Crea tavoli, registra re-buy, controlla la cassa e salva i risultati in tempo reale</p>
+        </div>
+        <button onclick="openNewGameModal()" class="bg-poker-accent hover:bg-blue-600 text-white font-semibold text-xs md:text-sm px-4 py-2 rounded-xl flex items-center gap-2">
+          <i data-lucide="plus" class="w-4 h-4"></i> Nuova Partita
+        </button>
+      </div>
+
+      <!-- List of Games -->
+      <div id="games-list-container" class="space-y-4">
+        <!-- Dynamic Content -->
+      </div>
+    </section>
+
+    <!-- VIEW 3: PLAYERS -->
+    <section id="view-players" class="hidden space-y-6">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-xl font-extrabold text-white">Anagrafica & Analytics Giocatori</h2>
+          <p class="text-xs text-slate-400">Analizza bilanci, percentuali di vittoria, ROI e profilo personale</p>
+        </div>
+        <button onclick="openNewPlayerModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs md:text-sm px-4 py-2 rounded-xl flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4"></i> Aggiungi Giocatore
+        </button>
+      </div>
+
+      <!-- Players Grid -->
+      <div id="players-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Dynamic Content -->
+      </div>
+    </section>
+
+    <!-- VIEW 4: LEADERBOARD -->
+    <section id="view-leaderboard" class="hidden space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-extrabold text-white">Classifica Generale & Rendimento (ROI)</h2>
+          <p class="text-xs text-slate-400">Statistiche complete ordinate per profitto netto e ROI %</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openInviteModal()" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5">
+            <i data-lucide="share-2" class="w-4 h-4"></i> Condividi Classifica
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-poker-card border border-poker-border rounded-2xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-900/80 text-xs uppercase text-slate-400 border-b border-poker-border">
+              <tr>
+                <th class="py-3.5 px-4">Pos</th>
+                <th class="py-3.5 px-4">Giocatore</th>
+                <th class="py-3.5 px-4 text-center">Partite</th>
+                <th class="py-3.5 px-4 text-center">Win Rate %</th>
+                <th class="py-3.5 px-4 text-right">Tot. Buy-in</th>
+                <th class="py-3.5 px-4 text-right">Tot. Cashout</th>
+                <th class="py-3.5 px-4 text-right">ROI %</th>
+                <th class="py-3.5 px-4 text-right">Profitto Netto</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-table-body" class="divide-y divide-poker-border/50 text-slate-200">
+              <!-- Dynamic Content -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Mobile Navigation Bar -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-poker-card/95 backdrop-blur-lg border-t border-poker-border z-40 px-3 py-2 flex justify-around items-center">
+    <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center gap-1 text-poker-accent">
+      <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+      <span class="text-[10px] font-medium">Home</span>
+    </button>
+    <button onclick="switchTab('games')" id="mob-nav-games" class="flex flex-col items-center gap-1 text-slate-400">
+      <i data-lucide="spade" class="w-5 h-5"></i>
+      <span class="text-[10px] font-medium">Partite</span>
+    </button>
+    <button onclick="switchTab('players')" id="mob-nav-players" class="flex flex-col items-center gap-1 text-slate-400">
+      <i data-lucide="users" class="w-5 h-5"></i>
+      <span class="text-[10px] font-medium">Giocatori</span>
+    </button>
+    <button onclick="switchTab('leaderboard')" id="mob-nav-leaderboard" class="flex flex-col items-center gap-1 text-slate-400">
+      <i data-lucide="trophy" class="w-5 h-5"></i>
+      <span class="text-[10px] font-medium">Classifica</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: AUTHENTICATION (Login / Registrazione) -->
+  <div id="modal-auth" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-poker-card border border-poker-border rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-poker-border pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="user-check" class="w-5 h-5 text-blue-400"></i> Autenticazione Utente
+        </h3>
+        <button onclick="closeModal('modal-auth')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- State: Already Logged In -->
+      <div id="auth-logged-in-container" class="hidden space-y-4 text-center">
+        <div class="w-16 h-16 rounded-full bg-blue-600/30 border-2 border-blue-500 flex items-center justify-center mx-auto text-blue-400 font-extrabold text-2xl" id="auth-avatar-initial">U</div>
+        <div>
+          <p class="font-bold text-lg text-white" id="auth-logged-nickname">Nickname</p>
+          <p class="text-xs text-slate-400" id="auth-logged-email">email@domain.com</p>
+        </div>
+        <button onclick="handleSignOut()" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold py-2.5 px-4 rounded-xl text-xs transition-all">
+          Disconnettiti (Logout)
+        </button>
+      </div>
+
+      <!-- State: Login / Register Forms -->
+      <div id="auth-forms-container" class="space-y-4">
+        <div class="flex bg-slate-900 p-1 rounded-xl border border-poker-border text-xs font-semibold">
+          <button onclick="setAuthTab('login')" id="auth-tab-login" class="flex-1 py-2 rounded-lg bg-blue-600 text-white transition-all">Accedi</button>
+          <button onclick="setAuthTab('register')" id="auth-tab-register" class="flex-1 py-2 rounded-lg text-slate-400 transition-all">Registrati</button>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Email</label>
+          <input type="email" id="auth-input-email" placeholder="nome@email.com" class="w-full bg-slate-900 border border-poker-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+          <input type="password" id="auth-input-password" placeholder="••••••••" class="w-full bg-slate-900 border border-poker-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div id="auth-field-nickname" class="hidden">
+          <label class="block text-xs font-medium text-slate-300 mb-1">Nickname (Nome al Tavolo)</label>
+          <input type="text" id="auth-input-nickname" placeholder="es. PokerPro" class="w-full bg-slate-900 border border-poker-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <button onclick="submitAuthForm()" id="auth-submit-btn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 px-4 rounded-xl text-xs shadow-lg transition-all">
+          Accedi al tuo Account
+        </button>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModal('modal-auth')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STANZA LIVE & CONFIGURAZIONE SUPABASE -->
+  <div id="modal-room" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-poker-card border border-poker-border rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-poker-border pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="radio" class="w-5 h-5 text-emerald-400"></i> Stanza Live & Database
+        </h3>
+        <button onclick="closeModal('modal-room')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Codice Stanza / Lega</label>
+          <div class="flex gap-2">
+            <input type="text" id="input-room-code" placeholder="es. LEAGUE-AMICI-1" class="flex-1 bg-slate-900 border border-poker-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            <button onclick="changeRoomCode()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 rounded-xl text-xs">Entra</button>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-1">Gli utenti inseriti nella stessa stanza condivideranno e aggiorneranno i dati live in tempo reale.</p>
+        </div>
+
+        <hr class="border-poker-border/60 my-2" />
+
+        <div class="space-y-2">
+          <span class="text-xs font-bold text-slate-200 block">Parametri Supabase Cloud</span>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-0.5">Project URL</label>
+            <input type="text" id="cfg-supabase-url" placeholder="https://xxx.supabase.co" class="w-full bg-slate-900 border border-poker-border rounded-xl px-3 py-1.5 text-xs text-white" />
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 mb-0.5">Anon Public Key</label>
+            <input type="password" id="cfg-supabase-key" placeholder="eyJhbG..." class="w-full bg-slate-900 border border-poker-border rounded-xl px-3 py-1.5 text-xs text-white" />
+          </div>
+          <button onclick="saveSupabaseConfig()" class="w-full bg-slate-800 hover:bg-slate-700 border border-poker-border text-slate-200 font-semibold py-2 rounded-xl text-xs mt-1">
+            Salva Parametri API
+          </button>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModal('modal-room')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: New Player -->
+  <div id="modal-new-player" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-poker-card border border-poker-border rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-5 h-5 text-emerald-400"></i> Nuovo Giocatore
+        </h3>
+        <button onclick="closeModal('modal-new-player')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-300 mb-1">Nome / Nickname</label>
+        <input type="text" id="input-player-name" placeholder="es. Patty, Marco, PokerPro" class="w-full bg-slate-900 border border-poker-border rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500" />
+      </div>
+      <div class="flex gap-3 justify-end pt-2">
+        <button onclick="closeModal('modal-new-player')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800">Annulla</button>
+        <button onclick="savePlayer()" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white">Salva Giocatore</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: New Game -->
+  <div id="modal-new-game" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-poker-card border border-poker-border rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="spade" class="w-5 h-5 text-amber-400"></i> Crea Nuova Partita
+        </h3>
+        <button onclick="closeModal('modal-new-game')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Titolo Partita / Sessione</label>
+          <input type="text" id="input-game-title" placeholder="es. Sessione Venerdì Sera" class="w-full bg-slate-900 border border-poker-border rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-1">Costo Buy-In Singolo (€)</label>
+          <input type="number" id="input-game-buyin" value="10" min="1" class="w-full bg-slate-900 border border-poker-border rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-300 mb-2">Seleziona Giocatori Partecipanti</label>
+          <div id="new-game-players-selection" class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+            <!-- Dynamic Player Checkboxes -->
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 justify-end pt-2 border-t border-poker-border">
+        <button onclick="closeModal('modal-new-game')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800">Annulla</button>
+        <button onclick="createGame()" class="px-5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950">Avvia Partita</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Player Detailed Profile Stats -->
+  <div id="modal-player-stats" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-poker-card border border-poker-border rounded-2xl w-full max-w-2xl p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="flex justify-between items-center border-b border-poker-border pb-3">
+        <div class="flex items-center gap-3">
+          <div id="player-modal-avatar" class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white text-lg">P</div>
+          <div>
+            <h3 id="player-modal-name" class="text-lg font-bold text-white">Nome Giocatore</h3>
+            <p id="player-modal-games-count" class="text-xs text-slate-400">0 Partite Giocate</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modal-player-stats')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Player Stats Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-poker-border">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Profitto Netto</span>
+          <span id="player-modal-net" class="text-lg font-black text-emerald-400">+€ 0.00</span>
+        </div>
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-poker-border">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">ROI %</span>
+          <span id="player-modal-roi" class="text-lg font-black text-amber-400">0%</span>
+        </div>
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-poker-border">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Win Rate</span>
+          <span id="player-modal-winrate" class="text-lg font-black text-blue-400">0%</span>
+        </div>
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-poker-border">
+          <span class="text-[10px] text-slate-400 uppercase font-semibold block">Miglior Vincita</span>
+          <span id="player-modal-best" class="text-lg font-black text-emerald-400">+€ 0</span>
+        </div>
+      </div>
+
+      <!-- Individual Player Performance Chart -->
+      <div class="bg-slate-900/50 p-4 rounded-xl border border-poker-border space-y-2">
+        <h4 class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+          <i data-lucide="trending-up" class="w-4 h-4 text-emerald-400"></i> Andamento Cumulativo
+        </h4>
+        <div class="h-48 relative">
+          <canvas id="chart-player-personal"></canvas>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button onclick="closeModal('modal-player-stats')" class="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Invite Friends & Share League -->
+  <div id="modal-invite" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-poker-card border border-poker-border rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-poker-border pb-3">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-5 h-5 text-emerald-400"></i> Invita Amici & Condividi
+        </h3>
+        <button onclick="closeModal('modal-invite')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Condividi la classifica aggiornata o invita i tuoi amici di poker al prossimo tavolo!
+      </p>
+
+      <div class="space-y-3">
+        <button onclick="shareWhatsAppLeaderboard()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm transition-all">
+          <i data-lucide="message-square" class="w-4 h-4"></i> Condividi Classifica su WhatsApp
+        </button>
+
+        <button onclick="copyLeagueInviteText()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 border border-poker-border font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 text-sm transition-all">
+          <i data-lucide="copy" class="w-4 h-4"></i> Copia Messaggio d'Invito
+        </button>
+      </div>
+
+      <div class="bg-slate-900 p-3 rounded-xl border border-poker-border text-[11px] text-slate-400 space-y-1">
+        <span class="font-bold text-slate-300 block">Messaggio di esempio:</span>
+        <p class="italic" id="invite-preview-text">"♠ PATTY POKER LEAGUE ♠ Viene ad unirti al nostro prossimo tavolo! Guarda la classifica corrente..."</p>
+      </div>
+
+      <div class="flex justify-end pt-2">
+        <button onclick="closeModal('modal-invite')" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-800">Chiudi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-all duration-300 bg-slate-800 border border-poker-border text-slate-100 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+    <i id="toast-icon" data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>
+    <span id="toast-message" class="text-xs font-semibold">Operazione completata!</span>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. CONFIGURAZIONE & VALORI PREDEFINITI
+    // ==========================================
+    const STORAGE_KEY_PLAYERS = 'patty_poker_players_v2';
+    const STORAGE_KEY_GAMES = 'patty_poker_games_v2';
+    const STORAGE_KEY_ROOM = 'patty_poker_room_code';
+    const STORAGE_KEY_SB_URL = 'patty_poker_sb_url';
+    const STORAGE_KEY_SB_KEY = 'patty_poker_sb_key';
+
+    // Inserisci i tuoi parametri predefiniti qui o nell'interfaccia dell'app
+    let supabaseUrl = localStorage.getItem(STORAGE_KEY_SB_URL) || 'https://TUO-PROGETTO.supabase.co';
+    let supabaseKey = localStorage.getItem(STORAGE_KEY_SB_KEY) || 'LA_TUA_CHIAVE_ANON_PUBLIC';
+    let currentRoomId = localStorage.getItem(STORAGE_KEY_ROOM) || 'default-room';
+
+    let supabase = null;
+    let roomSubscription = null;
+    let currentUser = null;
+    let currentProfile = null;
+    let isAuthModeLogin = true;
+
+    // Inizializzazione Supabase
+    function initSupabaseClient() {
+      if (supabaseUrl.includes('TUO-PROGETTO') || !supabaseUrl) {
+        console.warn("Supabase non ancora configurato con chiavi valide. Utilizzo LocalStorage.");
+        return;
+      }
+      try {
+        if (window.supabase) {
+          supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+          console.log("Supabase attivato con successo.");
+        }
+      } catch (err) {
+        console.error("Errore inizializzazione Supabase:", err);
+      }
+    }
+
+    // Default Seed Data
+    let defaultPlayers = [
+      { id: '1', name: 'Patty' },
+      { id: '2', name: 'Marco' },
+      { id: '3', name: 'Luca' },
+      { id: '4', name: 'Elena' },
+      { id: '5', name: 'Andrea' }
+    ];
+
+    let defaultGames = [
+      {
+        id: '101',
+        title: 'Sessione Inaugurale',
+        date: '10/09/2026',
+        buyInUnit: 10,
+        status: 'closed',
+        players: [
+          { playerId: '1', buyInCount: 1, cashout: 25 },
+          { playerId: '2', buyInCount: 2, cashout: 0 },
+          { playerId: '3', buyInCount: 1, cashout: 15 },
+          { playerId: '4', buyInCount: 1, cashout: 10 }
+        ]
+      }
+    ];
+
+    let players = JSON.parse(localStorage.getItem(STORAGE_KEY_PLAYERS)) || defaultPlayers;
+    let games = JSON.parse(localStorage.getItem(STORAGE_KEY_GAMES)) || defaultGames;
+
+    // Instanze dei Grafici
+    let chartProfitHistoryInstance = null;
+    let chartRoiComparisonInstance = null;
+    let chartPlayerPersonalInstance = null;
+
+    // ==========================================
+    // 2. SINCRONIZZAZIONE LIVE & SUPABASE
+    // ==========================================
+    async function loadRoomDataFromSupabase() {
+      if (!supabase) return;
+      try {
+        const { data, error } = await supabase
+          .from('poker_rooms')
+          .select('data')
+          .eq('room_id', currentRoomId)
+          .single();
+
+        if (data && data.data) {
+          players = data.data.players || [];
+          games = data.data.games || [];
+          localStorage.setItem(STORAGE_KEY_PLAYERS, JSON.stringify(players));
+          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(games));
+          renderAllViews();
+        }
+      } catch (e) {
+        console.log("Nessun dato remoto trovato per questa stanza. Uso dati locali.");
+      }
+    }
+
+    async function saveRoomDataToSupabase() {
+      if (!supabase) return;
+      try {
+        await supabase
+          .from('poker_rooms')
+          .upsert({
+            room_id: currentRoomId,
+            data: { players, games },
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'room_id' });
+      } catch (err) {
+        console.error("Errore nel salvataggio su Supabase:", err);
+      }
+    }
+
+    function subscribeToRoomRealtime() {
+      if (!supabase) return;
+      if (roomSubscription) supabase.removeChannel(roomSubscription);
+
+      roomSubscription = supabase
+        .channel(`room-${currentRoomId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'poker_rooms',
+            filter: `room_id=eq.${currentRoomId}`
+          },
+          (payload) => {
+            if (payload.new && payload.new.data) {
+              players = payload.new.data.players || [];
+              games = payload.new.data.games || [];
+              localStorage.setItem(STORAGE_KEY_PLAYERS, JSON.stringify(players));
+              localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(games));
+              renderAllViews();
+              showToast('Tavolo aggiornato in tempo reale!');
+            }
+          }
+        )
+        .subscribe();
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY_PLAYERS, JSON.stringify(players));
+      localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(games));
+      saveRoomDataToSupabase();
+      renderAllViews();
+    }
+
+    function changeRoomCode() {
+      const codeInput = document.getElementById('input-room-code').value.trim().toUpperCase();
+      if (!codeInput) {
+        showToast('Inserisci un codice stanza valido', 'error');
+        return;
+      }
+      currentRoomId = codeInput;
+      localStorage.setItem(STORAGE_KEY_ROOM, currentRoomId);
+      document.getElementById('current-room-label').innerText = `Stanza: ${currentRoomId}`;
+      
+      loadRoomDataFromSupabase();
+      subscribeToRoomRealtime();
+      closeModal('modal-room');
+      showToast(`Connesso alla stanza ${currentRoomId}`);
+    }
+
+    function saveSupabaseConfig() {
+      const url = document.getElementById('cfg-supabase-url').value.trim();
+      const key = document.getElementById('cfg-supabase-key').value.trim();
+      if (url) localStorage.setItem(STORAGE_KEY_SB_URL, url);
+      if (key) localStorage.setItem(STORAGE_KEY_SB_KEY, key);
+      
+      supabaseUrl = url;
+      supabaseKey = key;
+      initSupabaseClient();
+      showToast('Configurazione API salvata!');
+      closeModal('modal-room');
+    }
+
+    // ==========================================
+    // 3. AUTENTICAZIONE UTENTE (AUTH)
+    // ==========================================
+    function setAuthTab(mode) {
+      isAuthModeLogin = mode === 'login';
+      const tabLogin = document.getElementById('auth-tab-login');
+      const tabRegister = document.getElementById('auth-tab-register');
+      const nicknameField = document.getElementById('auth-field-nickname');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      if (isAuthModeLogin) {
+        tabLogin.className = "flex-1 py-2 rounded-lg bg-blue-600 text-white transition-all";
+        tabRegister.className = "flex-1 py-2 rounded-lg text-slate-400 transition-all";
+        nicknameField.classList.add('hidden');
+        submitBtn.innerText = "Accedi al tuo Account";
+      } else {
+        tabRegister.className = "flex-1 py-2 rounded-lg bg-blue-600 text-white transition-all";
+        tabLogin.className = "flex-1 py-2 rounded-lg text-slate-400 transition-all";
+        nicknameField.classList.remove('hidden');
+        submitBtn.innerText = "Crea Nuovo Account";
+      }
+    }
+
+    async function submitAuthForm() {
+      if (!supabase) {
+        showToast('Configura prima le chiavi Supabase!', 'error');
+        return;
+      }
+
+      const email = document.getElementById('auth-input-email').value.trim();
+      const password = document.getElementById('auth-input-password').value.trim();
+      const nickname = document.getElementById('auth-input-nickname').value.trim();
+
+      if (!email || !password) {
+        showToast('Inserisci email e password', 'error');
+        return;
+      }
+
+      if (isAuthModeLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+          showToast(error.message, 'error');
+        } else {
+          showToast('Login effettuato!');
+          checkUserSession();
+          closeModal('modal-auth');
+        }
+      } else {
+        if (!nickname) {
+          showToast('Inserisci un nickname', 'error');
+          return;
+        }
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { nickname } }
+        });
+        if (error) {
+          showToast(error.message, 'error');
+        } else {
+          showToast('Registrazione avvenuta! Verifica la mail se richiesto.');
+          checkUserSession();
+          closeModal('modal-auth');
+        }
+      }
+    }
+
+    async function handleSignOut() {
+      if (supabase) {
+        await supabase.auth.signOut();
+        currentUser = null;
+        currentProfile = null;
+        updateUserUI();
+        showToast('Logout effettuato');
+        closeModal('modal-auth');
+      }
+    }
+
+    async function checkUserSession() {
+      if (!supabase) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      currentUser = user;
+
+      if (currentUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        currentProfile = profile;
+      }
+      updateUserUI();
+    }
+
+    function updateUserUI() {
+      const userBtnLabel = document.getElementById('user-display-name');
+      const loggedContainer = document.getElementById('auth-logged-in-container');
+      const formsContainer = document.getElementById('auth-forms-container');
+
+      if (currentUser) {
+        const name = (currentProfile && currentProfile.nickname) ? currentProfile.nickname : currentUser.email.split('@')[0];
+        userBtnLabel.innerText = name;
+        loggedContainer.classList.remove('hidden');
+        formsContainer.classList.add('hidden');
+
+        document.getElementById('auth-logged-nickname').innerText = name;
+        document.getElementById('auth-logged-email').innerText = currentUser.email;
+        document.getElementById('auth-avatar-initial').innerText = name.charAt(0).toUpperCase();
+      } else {
+        userBtnLabel.innerText = "Accedi";
+        loggedContainer.classList.add('hidden');
+        formsContainer.classList.remove('hidden');
+      }
+    }
+
+    // ==========================================
+    // 4. INTERFACCIA E LOGICA DI GIOCO
+    // ==========================================
+    function switchTab(tabId) {
+      document.querySelectorAll('section[id^="view-"]').forEach(el => el.classList.add('hidden'));
+      const targetView = document.getElementById(`view-${tabId}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-poker-accent', 'text-white');
+        btn.classList.add('text-slate-400');
+      });
+      const activeNav = document.getElementById(`nav-${tabId}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-poker-accent', 'text-white');
+        activeNav.classList.remove('text-slate-400');
+      }
+
+      document.querySelectorAll('nav button').forEach(btn => {
+        if (btn.id && btn.id.startsWith('mob-nav-')) {
+          btn.classList.remove('text-poker-accent');
+          btn.classList.add('text-slate-400');
+        }
+      });
+      const activeMobNav = document.getElementById(`mob-nav-${tabId}`);
+      if (activeMobNav) {
+        activeMobNav.classList.add('text-poker-accent');
+        activeMobNav.classList.remove('text-slate-400');
+      }
+
+      if (window.lucide) lucide.createIcons();
+      if (tabId === 'dashboard') renderCharts();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+      
+      toastMsg.innerText = message;
+      if (type === 'error') {
+        toastIcon.setAttribute('data-lucide', 'alert-circle');
+        toastIcon.className = "w-5 h-5 text-red-400";
+      } else {
+        toastIcon.setAttribute('data-lucide', 'check-circle');
+        toastIcon.className = "w-5 h-5 text-emerald-400";
+      }
+      
+      if (window.lucide) lucide.createIcons();
+      toast.classList.remove('translate-x-full');
+      setTimeout(() => { toast.classList.add('translate-x-full'); }, 3000);
+    }
+
+    function openNewPlayerModal() {
+      document.getElementById('input-player-name').value = '';
+      openModal('modal-new-player');
+    }
+
+    function savePlayer() {
+      const nameInput = document.getElementById('input-player-name');
+      const name = nameInput.value.trim();
+      if (!name) {
+        showToast('Inserisci un nome valido', 'error');
+        return;
+      }
+      players.push({ id: Date.now().toString(), name: name });
+      saveData();
+      closeModal('modal-new-player');
+      showToast(`Giocatore ${name} aggiunto!`);
+    }
+
+    function deletePlayer(id) {
+      const p = players.find(x => x.id === id);
+      if (!p) return;
+      players = players.filter(x => x.id !== id);
+      saveData();
+      showToast(`Giocatore ${p.name} rimosso`);
+    }
+
+    function openNewGameModal() {
+      document.getElementById('input-game-title').value = `Partita #${games.length + 1}`;
+      const container = document.getElementById('new-game-players-selection');
+      container.innerHTML = players.map(p => `
+        <label class="flex items-center justify-between p-2.5 bg-slate-900 border border-poker-border rounded-xl cursor-pointer hover:border-slate-600">
+          <span class="text-sm font-medium text-slate-200">${p.name}</span>
+          <input type="checkbox" value="${p.id}" class="game-player-checkbox w-4 h-4 rounded text-blue-600 bg-slate-800 border-slate-700" checked />
+        </label>
+      `).join('');
+      openModal('modal-new-game');
+    }
+
+    function createGame() {
+      const title = document.getElementById('input-game-title').value.trim() || 'Sessione Poker';
+      const buyIn = parseFloat(document.getElementById('input-game-buyin').value) || 10;
+      const checkedBoxes = document.querySelectorAll('.game-player-checkbox:checked');
+      
+      if (checkedBoxes.length < 2) {
+        showToast('Seleziona almeno 2 giocatori', 'error');
+        return;
+      }
+
+      const gamePlayers = Array.from(checkedBoxes).map(cb => ({
+        playerId: cb.value,
+        buyInCount: 1,
+        cashout: 0
+      }));
+
+      const newGame = {
+        id: Date.now().toString(),
+        title: title,
+        date: new Date().toLocaleDateString('it-IT'),
+        buyInUnit: buyIn,
+        status: 'active',
+        players: gamePlayers
+      };
+
+      games.unshift(newGame);
+      saveData();
+      closeModal('modal-new-game');
+      switchTab('games');
+      showToast('Partita avviata in tempo reale!');
+    }
+
+    function updatePlayerBuyIn(gameId, playerId, delta) {
+      const game = games.find(g => g.id === gameId);
+      if (!game) return;
+      const gp = game.players.find(p => p.playerId === playerId);
+      if (gp) {
+        gp.buyInCount = Math.max(1, gp.buyInCount + delta);
+        saveData();
+      }
+    }
+
+    function updatePlayerCashout(gameId, playerId, value) {
+      const game = games.find(g => g.id === gameId);
+      if (!game) return;
+      const gp = game.players.find(p => p.playerId === playerId);
+      if (gp) {
+        gp.cashout = parseFloat(value) || 0;
+        saveData();
+      }
+    }
+
+    function closeGameSession(gameId) {
+      const game = games.find(g => g.id === gameId);
+      if (!game) return;
+
+      const totalBuyIn = game.players.reduce((sum, p) => sum + (p.buyInCount * game.buyInUnit), 0);
+      const totalCashout = game.players.reduce((sum, p) => sum + p.cashout, 0);
+
+      if (Math.abs(totalBuyIn - totalCashout) > 0.01) {
+        showToast(`Squadratura Cassa! Tot. Buy-in (€${totalBuyIn}) ≠ Cashout (€${totalCashout})`, 'error');
+      }
+
+      game.status = 'closed';
+      saveData();
+      showToast('Partita conclusa e archiviata!');
+    }
+
+    function deleteGame(gameId) {
+      games = games.filter(g => g.id !== gameId);
+      saveData();
+      showToast('Partita eliminata');
+    }
+
+    function getCalculatedLeaderboard() {
+      const playerStats = {};
+      players.forEach(p => {
+        playerStats[p.id] = {
+          id: p.id,
+          name: p.name,
+          gamesCount: 0,
+          winningGamesCount: 0,
+          totalBuyIn: 0,
+          totalCashout: 0,
+          net: 0,
+          bestSession: 0,
+          worstSession: 0
+        };
+      });
+
+      games.forEach(g => {
+        g.players.forEach(gp => {
+          if (playerStats[gp.playerId]) {
+            playerStats[gp.playerId].gamesCount += 1;
+            const buyInCost = gp.buyInCount * g.buyInUnit;
+            const profit = gp.cashout - buyInCost;
+            
+            playerStats[gp.playerId].totalBuyIn += buyInCost;
+            playerStats[gp.playerId].totalCashout += gp.cashout;
+            playerStats[gp.playerId].net += profit;
+
+            if (profit > 0) playerStats[gp.playerId].winningGamesCount += 1;
+            if (profit > playerStats[gp.playerId].bestSession) playerStats[gp.playerId].bestSession = profit;
+            if (profit < playerStats[gp.playerId].worstSession) playerStats[gp.playerId].worstSession = profit;
+          }
+        });
+      });
+
+      return Object.values(playerStats).map(p => {
+        const roi = p.totalBuyIn > 0 ? ((p.net / p.totalBuyIn) * 100) : 0;
+        const winRate = p.gamesCount > 0 ? ((p.winningGamesCount / p.gamesCount) * 100) : 0;
+        return {
+          ...p,
+          roi: parseFloat(roi.toFixed(1)),
+          winRate: parseFloat(winRate.toFixed(0))
+        };
+      }).sort((a, b) => b.net - a.net);
+    }
+
+    function renderAllViews() {
+      renderDashboard();
+      renderGames();
+      renderPlayers();
+      renderLeaderboard();
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderDashboard() {
+      document.getElementById('stat-total-games').innerText = games.length;
+
+      let totalPot = 0;
+      games.forEach(g => {
+        g.players.forEach(p => { totalPot += p.buyInCount * g.buyInUnit; });
+      });
+      document.getElementById('stat-total-pot').innerText = `€ ${totalPot}`;
+
+      const leaderboard = getCalculatedLeaderboard();
+      if (leaderboard.length > 0) {
+        document.getElementById('stat-top-player').innerText = leaderboard[0].name;
+        document.getElementById('stat-top-player-net').innerText = `${leaderboard[0].net >= 0 ? '+' : ''}€ ${leaderboard[0].net.toFixed(2)}`;
+
+        const topRoiPlayer = [...leaderboard].sort((a, b) => b.roi - a.roi)[0];
+        if (topRoiPlayer) {
+          document.getElementById('stat-top-roi').innerText = `${topRoiPlayer.roi}%`;
+          document.getElementById('stat-top-roi-player').innerText = topRoiPlayer.name;
+        }
+      }
+
+      const activeGame = games.find(g => g.status === 'active');
+      const activeBanner = document.getElementById('active-game-banner');
+      if (activeGame) {
+        activeBanner.classList.remove('hidden');
+        document.getElementById('active-game-title').innerText = activeGame.title;
+        document.getElementById('active-game-info').innerText = `Buy-in: €${activeGame.buyInUnit} • ${activeGame.players.length} Giocatori al tavolo`;
+      } else {
+        activeBanner.classList.add('hidden');
+      }
+
+      const top3Container = document.getElementById('dashboard-top-players');
+      if (leaderboard.length === 0) {
+        top3Container.innerHTML = `<p class="text-xs text-slate-500 italic py-4 text-center col-span-3">Nessuna partita registrata</p>`;
+      } else {
+        top3Container.innerHTML = leaderboard.slice(0, 3).map((p, idx) => `
+          <div class="flex items-center justify-between p-3.5 rounded-xl bg-slate-900/80 border border-poker-border">
+            <div class="flex items-center gap-3">
+              <span class="w-7 h-7 rounded-full flex items-center justify-center font-black text-xs ${idx === 0 ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20' : idx === 1 ? 'bg-slate-300 text-slate-950' : 'bg-amber-800 text-white'}">${idx + 1}</span>
+              <div>
+                <span class="font-bold text-sm text-white block">${p.name}</span>
+                <span class="text-[10px] text-slate-400">ROI: ${p.roi}% • WinRate: ${p.winRate}%</span>
+              </div>
+            </div>
+            <span class="font-extrabold text-sm ${p.net >= 0 ? 'text-emerald-400' : 'text-red-400'}">${p.net >= 0 ? '+' : ''}€ ${p.net.toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+
+      renderCharts();
+    }
+
+    function renderCharts() {
+      const leaderboard = getCalculatedLeaderboard();
+      const closedGames = [...games].filter(g => g.status === 'closed').reverse();
+
+      const historyCtx = document.getElementById('chart-profit-history')?.getContext('2d');
+      if (historyCtx && closedGames.length > 0) {
+        const labels = closedGames.map((g, idx) => `#${idx + 1} (${g.date})`);
+        const topPlayers = leaderboard.slice(0, 4);
+        const datasets = topPlayers.map((player, idx) => {
+          const colors = ['#3b82f6', '#f59e0b', '#10b981', '#ec4899'];
+          let cumulative = 0;
+          const dataPoints = closedGames.map(g => {
+            const gp = g.players.find(p => p.playerId === player.id);
+            if (gp) cumulative += (gp.cashout - (gp.buyInCount * g.buyInUnit));
+            return cumulative;
+          });
+
+          return {
+            label: player.name,
+            data: dataPoints,
+            borderColor: colors[idx % colors.length],
+            borderWidth: 2,
+            tension: 0.3,
+            fill: false
+          };
+        });
+
+        if (chartProfitHistoryInstance) chartProfitHistoryInstance.destroy();
+        chartProfitHistoryInstance = new Chart(historyCtx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } },
+              y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+      }
+
+      const roiCtx = document.getElementById('chart-roi-comparison')?.getContext('2d');
+      if (roiCtx && leaderboard.length > 0) {
+        const roiSorted = [...leaderboard].sort((a, b) => b.roi - a.roi);
+        const labels = roiSorted.map(p => p.name);
+        const data = roiSorted.map(p => p.roi);
+        const backgroundColors = data.map(val => val >= 0 ? '#10b981' : '#ef4444');
+
+        if (chartRoiComparisonInstance) chartRoiComparisonInstance.destroy();
+        chartRoiComparisonInstance = new Chart(roiCtx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{ label: 'ROI %', data: data, backgroundColor: backgroundColors, borderRadius: 6 }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } },
+              y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+      }
+    }
+
+    function renderGames() {
+      const container = document.getElementById('games-list-container');
+      if (games.length === 0) {
+        container.innerHTML = `<div class="text-center py-12 bg-poker-card rounded-2xl border border-poker-border text-slate-400 text-sm">Nessuna partita salvata. Clicca su "Nuova Partita" per iniziare!</div>`;
+        return;
+      }
+
+      container.innerHTML = games.map(g => {
+        const totalPot = g.players.reduce((sum, p) => sum + (p.buyInCount * g.buyInUnit), 0);
+        const totalCashout = g.players.reduce((sum, p) => sum + p.cashout, 0);
+        const diff = totalPot - totalCashout;
+
+        return `
+          <div class="bg-poker-card border ${g.status === 'active' ? 'border-emerald-500/50' : 'border-poker-border'} rounded-2xl p-5 space-y-4 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-poker-border/60 pb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-bold text-lg text-white">${g.title}</h3>
+                  <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${g.status === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-800 text-slate-400'}">${g.status === 'active' ? 'IN CORSO' : 'CONCLUSA'}</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-0.5">Data: ${g.date} • Buy-in Singolo: €${g.buyInUnit}</p>
+              </div>
+              <div class="flex items-center justify-between sm:justify-end gap-4">
+                <div class="text-right">
+                  <span class="text-xs text-slate-400 block">Montepremi Totale</span>
+                  <span class="font-extrabold text-lg text-amber-400">€ ${totalPot}</span>
+                </div>
+                <button onclick="deleteGame('${g.id}')" class="text-slate-500 hover:text-red-400 p-1 transition-colors" title="Elimina Partita">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead class="text-slate-400 border-b border-poker-border/40">
+                  <tr>
+                    <th class="py-2">Giocatore</th>
+                    <th class="py-2 text-center">Buy-In</th>
+                    <th class="py-2 text-right">Tot. Investito</th>
+                    <th class="py-2 text-right">Cashout (€)</th>
+                    <th class="py-2 text-right">Profitto Netto</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-poker-border/30 text-slate-200">
+                  ${g.players.map(gp => {
+                    const player = players.find(p => p.id === gp.playerId) || { name: 'Sconosciuto' };
+                    const invested = gp.buyInCount * g.buyInUnit;
+                    const profit = gp.cashout - invested;
+                    return `
+                      <tr>
+                        <td class="py-2.5 font-semibold text-white">${player.name}</td>
+                        <td class="py-2.5 text-center">
+                          ${g.status === 'active' ? `
+                            <div class="inline-flex items-center gap-1.5 bg-slate-900 px-2 py-1 rounded-lg border border-poker-border">
+                              <button onclick="updatePlayerBuyIn('${g.id}', '${gp.playerId}', -1)" class="w-5 h-5 bg-slate-800 rounded flex items-center justify-center text-slate-300 font-bold hover:bg-slate-700">-</button>
+                              <span class="font-bold text-white px-1">${gp.buyInCount}</span>
+                              <button onclick="updatePlayerBuyIn('${g.id}', '${gp.playerId}', 1)" class="w-5 h-5 bg-slate-800 rounded flex items-center justify-center text-slate-300 font-bold hover:bg-slate-700">+</button>
+                            </div>
+                          ` : `<span class="font-bold text-slate-300">${gp.buyInCount}</span>`}
+                        </td>
+                        <td class="py-2.5 text-right font-medium text-slate-300">€ ${invested}</td>
+                        <td class="py-2.5 text-right">
+                          ${g.status === 'active' ? `
+                            <input type="number" value="${gp.cashout}" onchange="updatePlayerCashout('${g.id}', '${gp.playerId}', this.value)" class="w-20 bg-slate-900 border border-poker-border rounded-lg px-2 py-1 text-right text-xs text-white focus:outline-none focus:border-blue-500" />
+                          ` : `<span class="font-semibold text-slate-200">€ ${gp.cashout}</span>`}
+                        </td>
+                        <td class="py-2.5 text-right font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                          ${profit >= 0 ? '+' : ''}€${profit.toFixed(2)}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            ${g.status === 'active' ? `
+              <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-poker-border/40">
+                <div class="text-xs">
+                  ${Math.abs(diff) < 0.01 ? `
+                    <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                      <i data-lucide="check-circle-2" class="w-4 h-4"></i> Cassa Quadrata (Incassato = Buy-in)
+                    </span>
+                  ` : `
+                    <span class="text-amber-400 font-semibold flex items-center gap-1">
+                      <i data-lucide="alert-triangle" class="w-4 h-4"></i> Differenza Cassa: €${diff.toFixed(2)}
+                    </span>
+                  `}
+                </div>
+                <button onclick="closeGameSession('${g.id}')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-md">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i> Concludi Partita
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderPlayers() {
+      const grid = document.getElementById('players-grid');
+      const leaderboard = getCalculatedLeaderboard();
+
+      grid.innerHTML = players.map(p => {
+        const stats = leaderboard.find(l => l.id === p.id) || { gamesCount: 0, net: 0, roi: 0, winRate: 0 };
+        return `
+          <div class="bg-poker-card border border-poker-border p-4 rounded-2xl space-y-3 shadow-sm hover:border-slate-600 transition-all">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-white shadow-md">
+                  ${p.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">${p.name}</h4>
+                  <p class="text-[11px] text-slate-400">${stats.gamesCount} Partite Giocate</p>
+                </div>
+              </div>
+              <button onclick="deletePlayer('${p.id}')" class="text-slate-500 hover:text-red-400 p-1" title="Rimuovi Giocatore">
+                <i data-lucide="user-minus" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 bg-slate-900/60 p-2.5 rounded-xl text-center border border-poker-border/50">
+              <div>
+                <span class="text-[9px] text-slate-400 uppercase font-semibold block">Netto</span>
+                <span class="font-extrabold text-xs ${stats.net >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                  ${stats.net >= 0 ? '+' : ''}€${stats.net.toFixed(0)}
+                </span>
+              </div>
+              <div>
+                <span class="text-[9px] text-slate-400 uppercase font-semibold block">ROI</span>
+                <span class="font-extrabold text-xs text-amber-400">${stats.roi}%</span>
+              </div>
+              <div>
+                <span class="text-[9px] text-slate-400 uppercase font-semibold block">WinRate</span>
+                <span class="font-extrabold text-xs text-blue-400">${stats.winRate}%</span>
+              </div>
+            </div>
+
+            <button onclick="openPlayerStatsModal('${p.id}')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold py-2 rounded-xl flex items-center justify-center gap-1.5 transition-all">
+              <i data-lucide="area-chart" class="w-3.5 h-3.5 text-blue-400"></i> Dettagli & Grafico
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderLeaderboard() {
+      const leaderboard = getCalculatedLeaderboard();
+      const tbody = document.getElementById('leaderboard-table-body');
+
+      if (leaderboard.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-500 italic">Nessun giocatore registrato</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = leaderboard.map((p, idx) => `
+        <tr class="hover:bg-slate-800/40 transition-colors">
+          <td class="py-3.5 px-4 font-extrabold ${idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : 'text-slate-500'}">${idx + 1}</td>
+          <td class="py-3.5 px-4 font-bold text-white flex items-center gap-2">
+            ${idx === 0 ? '<i data-lucide="crown" class="w-4 h-4 text-amber-400"></i>' : ''} ${p.name}
+          </td>
+          <td class="py-3.5 px-4 text-center text-slate-300 font-medium">${p.gamesCount}</td>
+          <td class="py-3.5 px-4 text-center font-bold text-blue-400">${p.winRate}%</td>
+          <td class="py-3.5 px-4 text-right text-slate-300">€ ${p.totalBuyIn}</td>
+          <td class="py-3.5 px-4 text-right text-slate-300">€ ${p.totalCashout}</td>
+          <td class="py-3.5 px-4 text-right font-extrabold text-amber-400">${p.roi}%</td>
+          <td class="py-3.5 px-4 text-right font-black ${p.net >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+            ${p.net >= 0 ? '+' : ''}€ ${p.net.toFixed(2)}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openPlayerStatsModal(playerId) {
+      const leaderboard = getCalculatedLeaderboard();
+      const p = leaderboard.find(x => x.id === playerId);
+      if (!p) return;
+
+      document.getElementById('player-modal-name').innerText = p.name;
+      document.getElementById('player-modal-avatar').innerText = p.name.charAt(0).toUpperCase();
+      document.getElementById('player-modal-games-count').innerText = `${p.gamesCount} Partite Giocate`;
+      document.getElementById('player-modal-net').innerText = `${p.net >= 0 ? '+' : ''}€ ${p.net.toFixed(2)}`;
+      document.getElementById('player-modal-net').className = `text-lg font-black ${p.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`;
+      document.getElementById('player-modal-roi').innerText = `${p.roi}%`;
+      document.getElementById('player-modal-winrate').innerText = `${p.winRate}%`;
+      document.getElementById('player-modal-best').innerText = `+€ ${p.bestSession}`;
+
+      openModal('modal-player-stats');
+
+      const personalCtx = document.getElementById('chart-player-personal')?.getContext('2d');
+      if (personalCtx) {
+        const playerClosedGames = games.filter(g => g.status === 'closed' && g.players.some(gp => gp.playerId === playerId)).reverse();
+        let cumulative = 0;
+        const labels = playerClosedGames.map((g, i) => `#${i + 1}`);
+        const dataPoints = playerClosedGames.map(g => {
+          const gp = g.players.find(x => x.playerId === playerId);
+          if (gp) cumulative += (gp.cashout - (gp.buyInCount * g.buyInUnit));
+          return cumulative;
+        });
+
+        if (chartPlayerPersonalInstance) chartPlayerPersonalInstance.destroy();
+        chartPlayerPersonalInstance = new Chart(personalCtx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Profitto Cumulativo (€)',
+              data: dataPoints,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              fill: true,
+              tension: 0.3
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } },
+              y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#1e293b' } }
+            }
+          }
+        });
+      }
+    }
+
+    function openInviteModal() {
+      const leaderboard = getCalculatedLeaderboard();
+      let topText = "Nessuna partita giocata";
+      if (leaderboard.length > 0) {
+        topText = `Leader: ${leaderboard[0].name} (+€${leaderboard[0].net.toFixed(2)})`;
+      }
+      document.getElementById('invite-preview-text').innerText = `"♠ PATTY POKER LEAGUE ♠\n${topText}\nUnisciti alla stanza: ${currentRoomId}!"`;
+      openModal('modal-invite');
+    }
+
+    function shareWhatsAppLeaderboard() {
+      const leaderboard = getCalculatedLeaderboard();
+      let msg = `♠ *PATTY POKER - Classifica (Stanza ${currentRoomId})* ♠\n\n`;
+      leaderboard.slice(0, 5).forEach((p, i) => {
+        msg += `${i + 1}. *${p.name}*: ${p.net >= 0 ? '+' : ''}€${p.net.toFixed(2)} (ROI: ${p.roi}%)\n`;
+      });
+      msg += "\nUnisciti al prossimo tavolo! 🚀🎰";
+      
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(url, '_blank');
+    }
+
+    function copyLeagueInviteText() {
+      const leaderboard = getCalculatedLeaderboard();
+      let msg = `♠ PATTY POKER LEAGUE ♠ (Stanza: ${currentRoomId})\n\nTop Players:\n`;
+      leaderboard.slice(0, 3).forEach((p, i) => {
+        msg += `${i + 1}. ${p.name}: ${p.net >= 0 ? '+' : ''}€${p.net.toFixed(2)}\n`;
+      });
+      msg += "\nOrganizziamo un tavolo? Unisciti a noi!";
+
+      const textarea = document.createElement('textarea');
+      textarea.value = msg;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast('Messaggio copiato negli appunti!');
+    }
+
+    // ==========================================
+    // 5. CARICAMENTO INIZIALE APP
+    // ==========================================
+    window.onload = async function () {
+      // Inizializza etichetta Stanza & campi di configurazione
+      document.getElementById('current-room-label').innerText = `Stanza: ${currentRoomId}`;
+      document.getElementById('input-room-code').value = currentRoomId;
+      document.getElementById('cfg-supabase-url').value = supabaseUrl;
+      document.getElementById('cfg-supabase-key').value = supabaseKey;
+
+      initSupabaseClient();
+      await checkUserSession();
+
+      if (supabase) {
+        await loadRoomDataFromSupabase();
+        subscribeToRoomRealtime();
+      } else {
+        renderAllViews();
+      }
+    };
+  </script>
+</body>
+</html>

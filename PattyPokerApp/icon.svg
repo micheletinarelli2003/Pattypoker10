@@ -1,0 +1,153 @@
+<svg id="appRocketSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+      <defs>
+        <!-- Background Gradient -->
+        <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stop-color="#581c87"/>
+          <stop offset="45%" stop-color="#2e1065"/>
+          <stop offset="85%" stop-color="#1e1b4b"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </radialGradient>
+        
+        <!-- Card Radial Gradient -->
+        <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#fef3c7"/>
+        </linearGradient>
+
+        <!-- Rocket Body Gradient -->
+        <linearGradient id="rocketGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#f8fafc"/>
+          <stop offset="50%" stop-color="#ffffff"/>
+          <stop offset="100%" stop-color="#cbd5e1"/>
+        </linearGradient>
+
+        <!-- Rocket Nose Cone Gradient -->
+        <linearGradient id="noseGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fbbf24"/>
+          <stop offset="100%" stop-color="#d97706"/>
+        </linearGradient>
+
+        <!-- Window Glass Gradient -->
+        <linearGradient id="windowGlassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#38bdf8"/>
+          <stop offset="100%" stop-color="#0284c7"/>
+        </linearGradient>
+
+        <!-- Flame Gradient Outer -->
+        <linearGradient id="flameOuter" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fb923c"/>
+          <stop offset="100%" stop-color="#dc2626"/>
+        </linearGradient>
+
+        <!-- Flame Gradient Inner -->
+        <linearGradient id="flameInner" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#fde047"/>
+          <stop offset="100%" stop-color="#ea580c"/>
+        </linearGradient>
+
+        <!-- Shadows -->
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="10" stdDeviation="8" flood-color="#000000" flood-opacity="0.5"/>
+        </filter>
+      </defs>
+
+      <!-- App Icon Background Container with Squircle Corners -->
+      <rect x="0" y="0" width="512" height="512" rx="110" fill="url(#bgGrad)"/>
+
+      <!-- Orbit Ring -->
+      <circle cx="256" cy="256" r="220" fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.15"/>
+
+      <!-- POKER CHIPS IN ORBIT -->
+      <!-- Red Chip (Top Left) -->
+      <g transform="translate(95, 110)">
+        <circle cx="0" cy="0" r="34" fill="#dc2626" stroke="#ffffff" stroke-width="3"/>
+        <circle cx="0" cy="0" r="28" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="10 6"/>
+        <circle cx="0" cy="0" r="18" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <circle cx="0" cy="0" r="12" fill="#991b1b"/>
+      </g>
+
+      <!-- Blue Chip (Top Right) -->
+      <g transform="translate(420, 120)">
+        <circle cx="0" cy="0" r="34" fill="#1d4ed8" stroke="#ffffff" stroke-width="3"/>
+        <circle cx="0" cy="0" r="28" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="10 6"/>
+        <circle cx="0" cy="0" r="18" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <circle cx="0" cy="0" r="12" fill="#1e40af"/>
+      </g>
+
+      <!-- Black/Slate Chip (Bottom Left) -->
+      <g transform="translate(80, 390)">
+        <circle cx="0" cy="0" r="34" fill="#1e293b" stroke="#ffffff" stroke-width="3"/>
+        <circle cx="0" cy="0" r="28" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="10 6"/>
+        <circle cx="0" cy="0" r="18" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <circle cx="0" cy="0" r="12" fill="#0f172a"/>
+      </g>
+
+      <!-- Gold Chip (Bottom Right) -->
+      <g transform="translate(430, 380)">
+        <circle cx="0" cy="0" r="34" fill="#d97706" stroke="#ffffff" stroke-width="3"/>
+        <circle cx="0" cy="0" r="28" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="10 6"/>
+        <circle cx="0" cy="0" r="18" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <circle cx="0" cy="0" r="12" fill="#b45309"/>
+      </g>
+
+      <!-- Green Chip (Bottom Center) -->
+      <g transform="translate(256, 440)">
+        <circle cx="0" cy="0" r="32" fill="#059669" stroke="#ffffff" stroke-width="3"/>
+        <circle cx="0" cy="0" r="26" fill="none" stroke="#ffffff" stroke-width="4" stroke-dasharray="9 5"/>
+        <circle cx="0" cy="0" r="16" fill="none" stroke="#ffffff" stroke-width="2"/>
+        <circle cx="0" cy="0" r="10" fill="#047857"/>
+      </g>
+
+      <!-- POKER CARDS -->
+      <!-- Left Card: Ace of Hearts -->
+      <g transform="translate(256, 260) rotate(-18) translate(-256, -260)" filter="url(#shadow)">
+        <rect x="186" y="110" width="130" height="195" rx="14" fill="url(#cardGrad)" stroke="#e2e8f0" stroke-width="2"/>
+        <!-- Top Left Corner Suit -->
+        <text x="198" y="142" font-family="Arial, sans-serif" font-weight="bold" font-size="26" fill="#dc2626">A</text>
+        <path d="M 205 150 C 205 146 200 143 197 146 C 194 143 189 146 189 150 C 189 156 197 161 197 161 C 197 161 205 156 205 150 Z" fill="#dc2626"/>
+        <!-- Center Big Suit -->
+        <path d="M 271 185 C 271 168 251 155 240 170 C 229 155 209 168 209 185 C 209 208 240 228 240 228 C 240 228 271 208 271 185 Z" fill="#dc2626"/>
+      </g>
+
+      <!-- Right Card: King of Spades -->
+      <g transform="translate(256, 260) rotate(18) translate(-256, -260)" filter="url(#shadow)">
+        <rect x="196" y="110" width="130" height="195" rx="14" fill="url(#cardGrad)" stroke="#e2e8f0" stroke-width="2"/>
+        <!-- Top Left Corner Suit -->
+        <text x="208" y="142" font-family="Arial, sans-serif" font-weight="bold" font-size="26" fill="#0f172a">K</text>
+        <path d="M 218 158 C 218 152 208 144 208 144 C 208 144 198 152 198 158 C 198 162 202 164 205 162 C 207 168 209 168 208 168 L 208 168 L 210 168 C 209 168 211 162 213 162 C 216 164 220 162 218 158 Z" fill="#0f172a"/>
+        <!-- Center Big Suit -->
+        <path d="M 292 205 C 292 185 272 162 272 162 C 272 162 252 185 252 205 C 252 216 261 222 267 218 L 265 228 L 279 228 L 277 218 C 283 222 292 216 292 205 Z" fill="#0f172a"/>
+      </g>
+
+      <!-- CENTRAL ROCKET -->
+      <g filter="url(#shadow)">
+        <!-- Flames -->
+        <!-- Outer Flame -->
+        <path d="M 236 340 Q 256 420 256 420 Q 256 420 276 340 Z" fill="url(#flameOuter)"/>
+        <!-- Inner Flame -->
+        <path d="M 244 340 Q 256 390 256 390 Q 256 390 268 340 Z" fill="url(#flameInner)"/>
+
+        <!-- Left Fin -->
+        <path d="M 218 290 L 180 345 L 226 338 Z" fill="#dc2626"/>
+        <path d="M 218 290 L 180 345 L 208 338 Z" fill="#991b1b"/>
+
+        <!-- Right Fin -->
+        <path d="M 294 290 L 332 345 L 286 338 Z" fill="#dc2626"/>
+        <path d="M 294 290 L 332 345 L 304 338 Z" fill="#ef4444"/>
+
+        <!-- Rocket Main Fuselage -->
+        <path d="M 216 280 C 216 195 256 125 256 125 C 256 125 296 195 296 280 L 296 338 L 216 338 Z" fill="url(#rocketGrad)"/>
+
+        <!-- Rocket Nose Cone -->
+        <path d="M 230 178 C 242 148 256 125 256 125 C 256 125 270 148 282 178 Z" fill="url(#noseGrad)"/>
+
+        <!-- Red Accent Stripe -->
+        <rect x="226" y="308" width="60" height="12" rx="3" fill="#dc2626"/>
+
+        <!-- Porthole Window -->
+        <circle cx="256" cy="245" r="24" fill="#94a3b8"/>
+        <circle cx="256" cy="245" r="20" fill="url(#windowGlassGrad)"/>
+        <!-- Window Reflection -->
+        <path d="M 243 241 A 14 14 0 0 1 266 232 A 14 14 0 0 0 243 241 Z" fill="#ffffff" opacity="0.7"/>
+      </g>
+    </svg>
